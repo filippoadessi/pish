@@ -102,11 +102,11 @@ install_deps() {
   if have apt-get; then
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
-    apt-get install -y -qq nodejs npm tmux git curl ca-certificates zstd
+    apt-get install -y -qq nodejs npm tmux git curl ca-certificates zstd python3
   elif have dnf; then
-    dnf install -y nodejs npm tmux git curl zstd
+    dnf install -y nodejs npm tmux git curl zstd python3
   elif have yum; then
-    yum install -y nodejs npm tmux git curl zstd
+    yum install -y nodejs npm tmux git curl zstd python3
   else
     warn "⚠ distribuzione non riconosciuta — assumo node/npm/tmux già presenti"
   fi
@@ -377,7 +377,8 @@ write_pish_cmd() {
 #   pish start|stop|restart|status
 #   pish web             stampa l'URL del web UI (tau-mirror)
 #   pish pair            pairing remote-pi (app mobile)
-#   pish config          mostra la configurazione
+#   pish config          wizard interattivo (provider/modello/impostazioni)
+#   pish config --show   mostra la configurazione attuale
 #   pish log             tail del log di sistema
 # Come shell di login: chsh -s /usr/local/bin/pish
 set -euo pipefail
@@ -398,13 +399,26 @@ case "\${1:-}" in
   status) if tmux has-session -t "\$NAME" 2>/dev/null; then echo "● attiva (tmux: \$NAME)"; else echo "○ ferma"; fi ;;
   web)    echo "http://\$(hostname -I 2>/dev/null | awk '{print \$1}'):\${TAU_MIRROR_PORT:-$PISH_PORT}" ;;
   pair)   tmux send-keys -t "\$NAME" "/remote-pi pair --ttl 600" Enter; echo "✓ comando di pairing inviato alla sessione \$NAME" ;;
-  config) echo "nome: \$NAME · tau: \${TAU_MIRROR_PORT:-$PISH_PORT} · launcher: \$LAUNCH" ;;
+  config) exec bash "$PISH_DIR/pish-config.sh" "\${@:2}" ;;
+  show)   exec bash "$PISH_DIR/pish-config.sh" --show ;;
   log)    journalctl -u "\$SVC" -f ;;
   *)      start_sess; exec tmux attach -t "\$NAME" ;;
 esac
 CMD_EOF
   run chmod +x /usr/local/bin/pish
-  say "   ✓ /usr/local/bin/pish — pish start/stop/status/web/pair/config/log"
+
+  # wizard di configurazione interattivo
+  say "   ✓ wizard pish-config installato"
+  if [ "$PISH_DRYRUN" = 1 ]; then
+    echo "   [dry-run] copio pish-config.sh in $PISH_DIR/"
+  else
+    mkdir -p "$PISH_DIR"
+    cp "$(dirname "$0")/pish-config.sh" "$PISH_DIR/pish-config.sh" 2>/dev/null \
+      || curl -fsSL https://raw.githubusercontent.com/filippoadessi/pish/master/pish-config.sh -o "$PISH_DIR/pish-config.sh" \
+      || warn "⚠ pish-config.sh non copiato (usa: pish config --show per info)"
+    chmod +x "$PISH_DIR/pish-config.sh"
+  fi
+  say "   ✓ /usr/local/bin/pish — start/stop/status/web/pair/config/log + wizard"
 }
 
 # ============================== 6. SYSTEMD =================================

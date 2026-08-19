@@ -88,7 +88,32 @@ Se omesso, la sessione parte comunque ma va configurato il provider in seguito
 ## Comandi utili
 
 ```bash
+pish config                   # wizard interattivo: cambia provider/modello/impostazioni
+pish config --show            # mostra la configurazione attuale (key mascherate)
 systemctl restart pish        # riavvia la sessione
 journalctl -u pish -f         # log in tempo reale
 tmux attach -t pish           # attach alla sessione
+```
+
+## Wizard di configurazione
+
+`pish config` apre un wizard interattivo che permette di cambiare **senza
+reinstallare**:
+
+- **Provider e modello LLM**:
+  - `ollama` — locale, MiniCPM-V 4.6 scaricato automaticamente
+  - `anthropic` — Claude cloud (richiede API key `sk-ant-...`)
+  - `openai` — GPT cloud (richiede API key `sk-...`)
+  - `custom` — qualunque endpoint OpenAI-compatibile (OpenRouter, vLLM, LiteLLM)
+- **Impostazioni di base**: porta web UI, nome sessione, workspace, relay mobile
+
+Le API key sono salvate in `~/.pi/agent/auth.json` (formato pi, permessi 600);
+provider custom e modelli in `~/.pi/agent/models.json`; default in
+`~/.pi/settings.json`. La sessione viene riavviata automaticamente.
+
+Uso scripted (per automation):
+
+```bash
+pish config --noninteractive --provider anthropic --api-key sk-ant-... --model claude-sonnet-4-6
+pish config --noninteractive --provider ollama --model minicpm-v4.6
 ```
