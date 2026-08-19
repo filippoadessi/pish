@@ -242,5 +242,20 @@ propria) — la shell principale li orchestra via intercom/messaggi.
 **Prompt vivo**: a ogni turno PISH inietta lo stato del sistema (load, RAM,
 disco, docker, git branch, servizi falliti) — il modello sa sempre com'è il
 server senza che tu glielo chieda.
+
+**Memoria persistente** (`~/.pi/pish/memory.json`): PISH ricorda tra le sessioni.
+
+```bash
+/remember db-prod-host = 10.0.0.5:5432   # salva un fatto
+/facts                                    # elenca i fatti appresi
+/history [query]                          # cerca nello storico delle direttive
+/forget <chiave>                          # rimuove un fatto
+/memory                                   # mostra tutto
+/forget-all                               # cancella la memoria
+```
+
+Il modello salva da solo i fatti stabili che scopre (via tool `remember_fact`),
+e a ogni turno la memoria viene iniettata nel prompt: chiedi "qual è l'host del
+DB?" e risponde dalla memoria, senza eseguire comandi.
 - Nota: serve che l'utente abbia una sessione pish attiva o che `pish start`
   sia eseguibile al login (il comando attacha e avvia se serve)
