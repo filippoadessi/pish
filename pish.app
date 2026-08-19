@@ -428,6 +428,17 @@ CMD_EOF
       || warn "⚠ pish-config.sh non copiato (usa: pish config --show per info)"
     chmod +x "$PISH_DIR/pish-config.sh"
   fi
+
+  # estensione pi con i comandi slash /exit e /quit (uscita dalla shell di login)
+  say "   ✓ estensione pish-exit (comandi /exit /quit)"
+  if [ "$PISH_DRYRUN" = 1 ]; then
+    echo "   [dry-run] copio pish-exit.ts in ${HOME}/.pi/agent/extensions/"
+  else
+    mkdir -p "${HOME}/.pi/agent/extensions"
+    cp "$(dirname "$0")/pish-exit.ts" "${HOME}/.pi/agent/extensions/pish-exit.ts" 2>/dev/null \
+      || curl -fsSL https://raw.githubusercontent.com/filippoadessi/pish/master/pish-exit.ts -o "${HOME}/.pi/agent/extensions/pish-exit.ts" \
+      || warn "⚠ pish-exit.ts non copiato (i comandi /exit /quit non saranno disponibili)"
+  fi
   say "   ✓ /usr/local/bin/pish — start/stop/status/web/pair/config/log + wizard"
 }
 

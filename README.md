@@ -138,7 +138,9 @@ pish login-status    # mostra lo stato attuale
 # oppure via wizard: pish config → menu → login → enable/disable
 ```
 
-- Per uscire da pish: `exit` o Ctrl+D (torna al login)
+- Per uscire da pish: `/exit` o `/quit` (comandi slash) oppure `exit`/Ctrl+D
+- `/exit` stacca dalla sessione (resta attiva in background, riattacchi con `pish`)
+- `/quit` termina la sessione definitivamente (chiede conferma)
 - Utente diverso da root: `pish login-off filippo`
 - Nota: serve che l'utente abbia una sessione pish attiva o che `pish start`
   sia eseguibile al login (il comando attacha e avvia se serve)
