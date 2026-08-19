@@ -1,5 +1,8 @@
 # PISH — Pi Intelligent SHell
 
+> **🆕 v0.0.1 — prova e dacci feedback!** Leggi la [guida rapida](#prova-pish-e-inviaci-i-tuoi-commenti)
+> in fondo, apri una [issue](https://github.com/filippoadessi/pish/issues) o scrivici i tuoi commenti.
+
 Installer **single-file, self-contained** che trasforma un server Linux in una
 shell intelligente basata su [pi](https://github.com/badlogic/pi-mono):
 l'amministratore imparte **direttive in linguaggio naturale** invece di comandi,
@@ -172,6 +175,34 @@ pish config --noninteractive --provider anthropic --api-key sk-ant-... --model c
 pish config --noninteractive --provider ollama --model minicpm-v4.6
 pish config --noninteractive --provider openrouter --api-key sk-or-... --model anthropic/claude-sonnet-4
 ```
+
+## Prova PISH e inviaci i tuoi commenti
+
+**v0.0.1 è appena uscita** — siamo in beta e vogliamo il tuo feedback!
+
+### Come provarla (2 minuti)
+
+```bash
+# su un server Linux (Ubuntu/Debian/RHEL) con sudo:
+curl -fsSL https://github.com/filippoadessi/pish/releases/download/v0.0.1/pish-lite.app -o pish-lite.app && sudo bash pish-lite.app --provider=anthropic --api-key=sk-ant-...
+# oppure la versione con engine locale:
+curl -fsSL https://github.com/filippoadessi/pish/releases/download/v0.0.1/pish.app -o pish.app && sudo bash pish.app
+```
+
+Poi: `pish config` per il wizard, `pish login-on` per entrare al login, browser su
+`http://<server>:3810` per la chat, app Remote Pi per il telefono.
+
+### Come inviare commenti
+
+- **Issues**: [github.com/filippoadessi/pish/issues](https://github.com/filippoadessi/pish/issues) — bug, suggerimenti, richieste
+- **Cosa ci interessa sapere**:
+  - L'installazione su quale distro/versione hai provato
+  - Quale provider/modello usi (locale o cloud)
+  - Cosa funziona e cosa non funziona per te
+  - Idee per il wizard, la chat, il login, il pairing mobile
+- Template issue: apri una issue e includi `pish config --show` e `journalctl -u pish -n 50` se è un problema
+
+**Grazie per aver provato PISH!** 🚀
 
 ### Pish come shell di login
 
