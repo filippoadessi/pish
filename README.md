@@ -218,5 +218,25 @@ pish login-status    # mostra lo stato attuale
 - `/exit` stacca dalla sessione (resta attiva in background, riattacchi con `pish`)
 - `/quit` termina la sessione definitivamente (chiede conferma)
 - Utente diverso da root: `pish login-off filippo`
+
+### Modalità ibrida e orchestrazione
+
+**Modalità ibrida** (estensione `pish-hybrid`): l'input che inizia con un comando
+noto (`ls`, `docker`, `systemctl`, `git`, `df`, `ps`, ...) viene eseguito
+**direttamente** — zero token LLM, output immediato. Tutto il resto è una
+direttiva in linguaggio naturale per il modello.
+
+**Orchestrazione multicore** (utile su sistemi multi-core): la shell può
+istanziare worker pi in tmux e orchestrarli:
+
+```bash
+/spawn w1 "analizza i log di nginx"   # istanzia un worker pi (tmux: pi-worker-w1)
+/workers                              # elenca i worker attivi
+/send w1 "ora controlla il disco"     # invia un task a un worker
+/kill w1                              # termina il worker
+```
+
+Ogni worker è una sessione pi completa (mesh remote-pi, tau-mirror su porta
+propria) — la shell principale li orchestra via intercom/messaggi.
 - Nota: serve che l'utente abbia una sessione pish attiva o che `pish start`
   sia eseguibile al login (il comando attacha e avvia se serve)
