@@ -1,0 +1,6 @@
+# update-system — ricetta: aggiorna il sistema con verifica
+# una direttiva per riga; supporta "se ok:" / "se errore:" per rami condizionali
+mostra gli aggiornamenti disponibili con apt update e apt list --upgradable
+se ok: chiedi conferma all'utente prima di applicare
+se ok: applica gli aggiornamenti con apt upgrade -y e verifica che finisca senza errori
+se ok: verifica che i servizi critici (docker, nginx, postgres) siano ancora attivi

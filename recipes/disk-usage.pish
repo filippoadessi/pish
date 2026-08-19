@@ -1,0 +1,5 @@
+# disk-usage — ricetta: analisi dello spazio disco
+# una direttiva per riga; supporta "se ok:" / "se errore:" per rami condizionali
+mostra l'occupazione dei filesystem con df -h in formato tabella
+identifica le 10 cartelle che occupano di più nella root con du
+se ok: segnala se qualche filesystem è oltre l'80% di occupazione

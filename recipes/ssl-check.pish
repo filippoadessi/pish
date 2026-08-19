@@ -1,0 +1,6 @@
+# ssl-check — ricetta: verifica scadenza certificati SSL
+# una direttiva per riga; supporta "se ok:" / "se errore:" per rami condizionali
+elenca i domini serviti su porta 443 in questo server
+per ogni dominio verifica la scadenza del certificato SSL con openssl s_client
+mostra in tabella i certificati che scadono entro 30 giorni
+se errore: segnala i domini con certificato non verificabile o già scaduto

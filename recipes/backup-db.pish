@@ -1,0 +1,6 @@
+# backup-db — ricetta: backup del database PostgreSQL
+# una direttiva per riga; supporta "se ok:" / "se errore:" per rami condizionali
+fai un backup del database PostgreSQL con pg_dump, compresso, in /root/backups, con nome datato
+se ok: verifica che il file di backup sia presente, non vuoto e leggibile
+se ok: elimina i backup più vecchi di 7 giorni, tenendo gli ultimi 7
+notifica su Telegram che il backup del database è completato

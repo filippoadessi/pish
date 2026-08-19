@@ -316,3 +316,27 @@ se ok: notifica su Telegram
 - **Esecuzione**: ogni direttiva è inviata alla sessione pish come input
   utente reale (via tmux send-keys), così il modello la esegue con tutto il
   suo contesto; lo script avanza automaticamente al turno successivo
+
+**Ricette pronte** (`/recipe`, estensione `pish-recipe`): i task quotidiani
+come script `.pish` condivisibili, installati in `~/.pi/pish/recipes/`:
+
+```bash
+/recipe list                 # elenca le ricette disponibili
+/recipe show backup-db       # mostra il contenuto di una ricetta
+/recipe run backup-db        # esegue la ricetta (via /script run)
+/recipe install              # ripristina le ricette di default (senza sovrascrivere le modificate)
+```
+
+Ricette incluse:
+
+| Ricetta | Cosa fa |
+|---|---|
+| `backup-db` | backup PostgreSQL (`pg_dump` compresso datato), verifica leggibilità, rotazione 7 giorni, notifica Telegram |
+| `update-system` | aggiornamenti disponibili → conferma → `apt upgrade` → verifica servizi critici |
+| `ssl-check` | domini su :443, scadenza certificati, tabella con quelli a <30 giorni |
+| `disk-usage` | `df -h` in tabella, top 10 cartelle con `du`, segnalazione >80% |
+| `backup-config` | backup compresso datato di `/etc`, verifica integrità, dimensione |
+
+Le ricette usano la stessa sintassi dello scripting (`se ok:` / `se errore:`),
+quindi supportano checkpoint, ripresa e cron; sono anche nel repo in
+`recipes/*.pish` come sorgente condivisibile.
