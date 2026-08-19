@@ -1,19 +1,35 @@
-# PISH.app — Pi Intelligent SHell
+# PISH — Pi Intelligent SHell
 
 Installer **single-file, self-contained** che trasforma un server Linux in una
 shell intelligente basata su [pi](https://github.com/badlogic/pi-mono):
 l'amministratore imparte **direttive in linguaggio naturale** invece di comandi,
-da browser o da app mobile.
+da browser (tau-mirror) o da app mobile (remote-pi).
+
+## Due versioni
+
+| File | Engine | Quando usarla |
+|---|---|---|
+| **`pish.app`** | Ollama locale (default) | Server con risorse per un modello locale; scarica `qwen2.5:1.5b` (~1 GB) |
+| **`pish-lite.app`** | Nessuno (cloud-only) | Server piccoli o dove il modello gira altrove; niente Ollama, usi un provider cloud |
+
+Entrambe sono **self-contained** (nessun download extra dal repo) e installano:
+node, pi + estensioni (tau-mirror, remote-pi), servizio systemd, comando `pish`,
+wizard `pish config`, estensione `/exit` `/quit`.
 
 ## Installazione
 
 Su un server Linux fresco, come root:
 
 ```bash
-bash pish.app [opzioni]
+# versione completa (engine locale + modello piccolo di default)
+bash pish.app
+
+# versione leggera cloud-only (niente Ollama)
+bash pish-lite.app --provider=anthropic --api-key=sk-ant-...
 ```
 
-Il server deve avere accesso a un provider LLM per pi (vedi "Provider LLM").
+Entrambe supportano l'interazione: senza flag il wizard chiede provider/modello
+durante l'install (vedi "Provider LLM").
 
 ### Opzioni
 
@@ -40,6 +56,20 @@ bash pish.app --provider=ollama
 # Endpoint OpenAI-compatibile / API key
 bash pish.app --provider=openai --model=gpt-4o-mini
 ```
+
+### Opzioni comuni alle due versioni
+
+| Opzione | Default | Descrizione |
+|---|---|---|
+| `--port` | `3810` | Porta del web UI (tau-mirror) |
+| `--name` | `pish` | Nome della sessione e del servizio |
+| `--workspace` | `/root` | Directory di lavoro della sessione |
+| `--relay` | `https://relay.adessi.it` | Relay remote-pi per l'accesso mobile |
+| `--engine` | `ollama` (pish.app) / `none` (pish-lite.app) | Engine LLM locale |
+| `--provider` | — | Provider LLM (ollama/anthropic/openai/openrouter/...) |
+| `--model` | — | Modello LLM |
+| `--no-systemd` | — | Non installa il servizio systemd (avvio manuale) |
+| `--dry-run` | — | Mostra le azioni senza eseguirle |
 
 ### Modello di default
 
