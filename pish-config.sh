@@ -164,7 +164,12 @@ wizard_provider() {
     "ollama|Ollama locale (MiniCPM-V 4.6, scaricato automaticamente — offline)" \
     "anthropic|Anthropic Claude (cloud — richiede API key)" \
     "openai|OpenAI GPT (cloud — richiede API key)" \
-    "custom|Endpoint OpenAI-compatibile (es. OpenRouter, vLLM, LiteLLM)")
+    "openrouter|OpenRouter (cloud — molti modelli, una key)" \
+    "deepseek|DeepSeek (cloud — economico)" \
+    "groq|Groq (cloud — velocissimo, modelli free)" \
+    "mistral|Mistral AI (cloud)" \
+    "xai|xAI Grok (cloud)" \
+    "custom|Endpoint OpenAI-compatibile (es. vLLM, LiteLLM)")
 
   case "$choice" in
     ollama)
@@ -205,6 +210,51 @@ wizard_provider() {
       json_merge "$SETTINGS" "{\"defaultProvider\":\"openai\",\"defaultModel\":\"$model\"}"
       say "  ✓ API key salvata in auth.json"
       ;;
+    openrouter)
+      local key model
+      key=$(ask "API key OpenRouter (sk-or-...)" "")
+      [ -n "$key" ] || die "API key richiesta"
+      model=$(ask "Modello" "anthropic/claude-sonnet-4")
+      json_merge "$AUTH" "{\"openrouter\":{\"type\":\"api_key\",\"key\":\"$key\"}}"
+      json_merge "$SETTINGS" "{\"defaultProvider\":\"openrouter\",\"defaultModel\":\"$model\"}"
+      say "  ✓ API key salvata in auth.json"
+      ;;
+    deepseek)
+      local key model
+      key=$(ask "API key DeepSeek (sk-...)" "")
+      [ -n "$key" ] || die "API key richiesta"
+      model=$(ask "Modello" "deepseek-chat")
+      json_merge "$AUTH" "{\"deepseek\":{\"type\":\"api_key\",\"key\":\"$key\"}}"
+      json_merge "$SETTINGS" "{\"defaultProvider\":\"deepseek\",\"defaultModel\":\"$model\"}"
+      say "  ✓ API key salvata in auth.json"
+      ;;
+    groq)
+      local key model
+      key=$(ask "API key Groq (gsk_...)" "")
+      [ -n "$key" ] || die "API key richiesta"
+      model=$(ask "Modello" "llama-3.3-70b-versatile")
+      json_merge "$AUTH" "{\"groq\":{\"type\":\"api_key\",\"key\":\"$key\"}}"
+      json_merge "$SETTINGS" "{\"defaultProvider\":\"groq\",\"defaultModel\":\"$model\"}"
+      say "  ✓ API key salvata in auth.json"
+      ;;
+    mistral)
+      local key model
+      key=$(ask "API key Mistral (XxXx...)" "")
+      [ -n "$key" ] || die "API key richiesta"
+      model=$(ask "Modello" "mistral-large-latest")
+      json_merge "$AUTH" "{\"mistral\":{\"type\":\"api_key\",\"key\":\"$key\"}}"
+      json_merge "$SETTINGS" "{\"defaultProvider\":\"mistral\",\"defaultModel\":\"$model\"}"
+      say "  ✓ API key salvata in auth.json"
+      ;;
+    xai)
+      local key model
+      key=$(ask "API key xAI (xai-...)" "")
+      [ -n "$key" ] || die "API key richiesta"
+      model=$(ask "Modello" "grok-3")
+      json_merge "$AUTH" "{\"xai\":{\"type\":\"api_key\",\"key\":\"$key\"}}"
+      json_merge "$SETTINGS" "{\"defaultProvider\":\"xai\",\"defaultModel\":\"$model\"}"
+      say "  ✓ API key salvata in auth.json"
+      ;;
     custom)
       local base key model pid
       base=$(ask "Base URL (OpenAI-compatibile)" "")
@@ -222,6 +272,70 @@ wizard_provider() {
   # timeout provider alto (modelli locali lenti)
   json_merge "$SETTINGS" '{"retry":{"provider":{"timeoutMs":600000}}}'
   say "✓ Provider configurato"
+}
+
+# ------------------------------ login shell -----------------------------------
+# Rende pish la shell di login dell'utente: al login si entra DIRETTAMENTE in
+# pish (attach alla sessione) invece di bash.
+wizard_login() {
+  hdr "Pish come shell di login"
+  local choice
+  choice=$(pick "Opzione:" "1" \
+    "enable|Entra direttamente in pish al login (chsh -s /usr/local/bin/pish)" \
+    "disable|Ripristina la shell di default (bash)" \
+    "show|Mostra lo stato attuale")
+
+  case "$choice" in
+    enable)
+      # /etc/shells: aggiunge pish come shell valida
+      if ! grep -qx '/usr/local/bin/pish' /etc/shells 2>/dev/null; then
+        echo '/usr/local/bin/pish' >> /etc/shells
+        say "  ✓ /usr/local/bin/pish aggiunto a /etc/shells"
+      else
+        say "  • pish già in /etc/shells"
+      fi
+      # verifica che pish sia installato ed eseguibile
+      if [ ! -x /usr/local/bin/pish ]; then
+        die "pish non trovato o non eseguibile (/usr/local/bin/pish) — esegui prima pish.app"
+      fi
+      # chsh per l'utente corrente (o quello indicato)
+      local user
+      user=$(ask "Utente" "${SUDO_USER:-root}")
+      if [ -n "$user" ] && id "$user" >/dev/null 2>&1; then
+        chsh -s /usr/local/bin/pish "$user" && say "  ✓ shell di login di $user → pish"
+      else
+        die "utente non trovato: ${user:-?}"
+      fi
+      say ""
+      say "  ✅ Al prossimo login entrerai direttamente in PISH."
+      say "     Per uscire: digitare 'exit' o Ctrl+D (torna al login)"
+      say "     Per tornare a bash: pish config → login → disable"
+      ;;
+    disable)
+      local user
+      user=$(ask "Utente" "${SUDO_USER:-root}")
+      if [ -n "$user" ] && id "$user" >/dev/null 2>&1; then
+        # torna alla shell di default del sistema (bash se presente)
+        local def="/bin/bash"
+        command -v bash >/dev/null 2>&1 || def="/bin/sh"
+        chsh -s "$def" "$user" && say "  ✓ shell di login di $user → $def"
+      else
+        die "utente non trovato: ${user:-?}"
+      fi
+      ;;
+    show)
+      local user
+      user="${SUDO_USER:-root}"
+      local sh
+      sh=$(getent passwd "$user" | cut -d: -f7)
+      if [ "$sh" = "/usr/local/bin/pish" ]; then
+        say "  ✓ $user entra in pish al login (shell: $sh)"
+      else
+        say "  • $user ha shell di login: $sh (non pish)"
+      fi
+      ;;
+    *) die "scelta non valida" ;;
+  esac
 }
 
 # ------------------------------ wizard base -----------------------------------
@@ -281,13 +395,15 @@ case "${1:-}" in
     hdr "PISH — Configurazione"
     dim "Cosa vuoi cambiare?"
     what=$(pick "Sezione:" "1" \
-      "provider|Provider e modello LLM (ollama / Claude / GPT / custom)" \
+      "provider|Provider e modello LLM (ollama / Claude / GPT / OpenRouter / ...)" \
       "base|Impostazioni di base (porta, nome, workspace, relay)" \
+      "login|Entra in pish direttamente al login (shell di login)" \
       "show|Mostra configurazione attuale" \
       "exit|Esci")
     case "$what" in
       provider) wizard_provider ;;
       base) wizard_base ;;
+      login) wizard_login ;;
       show) show_config ;;
       exit) exit 0 ;;
       *) die "scelta non valida" ;;

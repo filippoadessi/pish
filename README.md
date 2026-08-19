@@ -102,9 +102,15 @@ reinstallare**:
 
 - **Provider e modello LLM**:
   - `ollama` — locale, MiniCPM-V 4.6 scaricato automaticamente
-  - `anthropic` — Claude cloud (richiede API key `sk-ant-...`)
-  - `openai` — GPT cloud (richiede API key `sk-...`)
-  - `custom` — qualunque endpoint OpenAI-compatibile (OpenRouter, vLLM, LiteLLM)
+  - `anthropic` — Claude cloud (API key `sk-ant-...`)
+  - `openai` — GPT cloud (API key `sk-...`)
+  - `openrouter` — OpenRouter, molti modelli con una sola key (`sk-or-...`)
+  - `deepseek` — DeepSeek cloud, economico (`sk-...`)
+  - `groq` — Groq, velocissimo con modelli free (`gsk_...`)
+  - `mistral` — Mistral AI cloud
+  - `xai` — xAI Grok cloud (`xai-...`)
+  - `custom` — qualunque endpoint OpenAI-compatibile (vLLM, LiteLLM)
+- **Login shell**: entra **direttamente in pish al login** (al posto di bash)
 - **Impostazioni di base**: porta web UI, nome sessione, workspace, relay mobile
 
 Le API key sono salvate in `~/.pi/agent/auth.json` (formato pi, permessi 600);
@@ -116,4 +122,20 @@ Uso scripted (per automation):
 ```bash
 pish config --noninteractive --provider anthropic --api-key sk-ant-... --model claude-sonnet-4-6
 pish config --noninteractive --provider ollama --model minicpm-v4.6
+pish config --noninteractive --provider openrouter --api-key sk-or-... --model anthropic/claude-sonnet-4
 ```
+
+### Pish come shell di login
+
+Con `pish config → login → enable`, al prossimo login dell'utente si entra
+**direttamente in PISH** (attach alla sessione) invece di bash:
+
+```bash
+pish config          # menu → login → enable
+# poi: logout e ri-login → sei dentro pish
+```
+
+- Per uscire: `exit` o Ctrl+D (torna al login)
+- Per tornare a bash: `pish config → login → disable`
+- Nota: serve che l'utente abbia una sessione pish attiva o che `pish start`
+  sia eseguibile al login (il comando attacha e avvia se serve)

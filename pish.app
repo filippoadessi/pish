@@ -377,10 +377,12 @@ write_pish_cmd() {
 #   pish start|stop|restart|status
 #   pish web             stampa l'URL del web UI (tau-mirror)
 #   pish pair            pairing remote-pi (app mobile)
-#   pish config          wizard interattivo (provider/modello/impostazioni)
+#   pish config          wizard interattivo (provider/modello/impostazioni/login)
 #   pish config --show   mostra la configurazione attuale
 #   pish log             tail del log di sistema
-# Come shell di login: chsh -s /usr/local/bin/pish
+# Come shell di login: pish config → login → enable (entra direttamente in pish) (o: pish config → login)
+# Quando invocata come shell di login (argv[0] inizia con '-'), pish attacha
+# direttamente alla sessione: si entra in pish, non in bash.
 set -euo pipefail
 NAME="\${PISH_NAME:-$PISH_NAME}"
 SVC="pish"
@@ -402,7 +404,11 @@ case "\${1:-}" in
   config) exec bash "$PISH_DIR/pish-config.sh" "\${@:2}" ;;
   show)   exec bash "$PISH_DIR/pish-config.sh" --show ;;
   log)    journalctl -u "\$SVC" -f ;;
-  *)      start_sess; exec tmux attach -t "\$NAME" ;;
+  login)
+    start_sess; exec tmux attach -t "\$NAME" ;;
+  *)
+    # attach di default; idem quando invocata come shell di login (argv[0] = -pish)
+    start_sess; exec tmux attach -t "\$NAME" ;;
 esac
 CMD_EOF
   run chmod +x /usr/local/bin/pish
