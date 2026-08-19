@@ -1,5 +1,6 @@
 # PISH — Pi Intelligent SHell
 
+> [![Release](https://img.shields.io/github/v/release/filippoadessi/pish)](https://github.com/filippoadessi/pish/releases)
 > **🆕 v0.0.1 — prova e dacci feedback!** Leggi la [guida rapida](#prova-pish-e-inviaci-i-tuoi-commenti)
 > in fondo, apri una [issue](https://github.com/filippoadessi/pish/issues) o scrivici i tuoi commenti.
 
@@ -26,18 +27,15 @@ Su un server Linux fresco, come root — **una riga, senza scaricare nulla prima
 ```bash
 # (se curl manca su un server minimale: apt-get update && apt-get install -y curl)
 # versione completa (engine locale + modello piccolo di default)
-curl -fsSL https://raw.githubusercontent.com/filippoadessi/pish/master/pish.app -o pish.app && sudo bash pish.app
+curl -fsSL https://github.com/filippoadessi/pish/releases/latest/download/pish.app.sh -o pish.app && sudo bash pish.app
 
 # versione leggera cloud-only (niente Ollama)
-curl -fsSL https://raw.githubusercontent.com/filippoadessi/pish/master/pish-lite.app -o pish-lite.app && sudo bash pish-lite.app --provider=anthropic --api-key=sk-ant-...
+curl -fsSL https://github.com/filippoadessi/pish/releases/latest/download/pish-lite.app.sh -o pish-lite.app && sudo bash pish-lite.app --provider=anthropic --api-key=sk-ant-...
 ```
 
-Oppure, se preferisci salvare prima:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/filippoadessi/pish/master/pish.app -o pish.app
-sudo bash pish.app
-```
+(`/releases/latest/download/...` punta sempre all'ultima release; gli asset hanno
+estensione `.sh` per le regole di GitHub, ma il contenuto è lo stesso installer
+self-contained.)
 
 Entrambe supportano l'interazione: senza flag il wizard chiede provider/modello
 durante l'install (vedi "Provider LLM").
