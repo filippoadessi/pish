@@ -379,6 +379,7 @@ write_pish_cmd() {
 #   pish pair            pairing remote-pi (app mobile)
 #   pish config          wizard interattivo (provider/modello/impostazioni/login)
 #   pish config --show   mostra la configurazione attuale
+#   pish login-on|off|status   abilita/disabilita pish come shell di login
 #   pish log             tail del log di sistema
 # Come shell di login: pish config → login → enable (entra direttamente in pish) (o: pish config → login)
 # Quando invocata come shell di login (argv[0] inizia con '-'), pish attacha
@@ -404,6 +405,9 @@ case "\${1:-}" in
   config) exec bash "$PISH_DIR/pish-config.sh" "\${@:2}" ;;
   show)   exec bash "$PISH_DIR/pish-config.sh" --show ;;
   log)    journalctl -u "\$SVC" -f ;;
+  login-on)  exec bash "$PISH_DIR/pish-config.sh" --login enable ;;
+  login-off) exec bash "$PISH_DIR/pish-config.sh" --login disable ;;
+  login-status) exec bash "$PISH_DIR/pish-config.sh" --login status ;;
   login)
     start_sess; exec tmux attach -t "\$NAME" ;;
   *)

@@ -279,11 +279,13 @@ wizard_provider() {
 # pish (attach alla sessione) invece di bash.
 wizard_login() {
   hdr "Pish come shell di login"
-  local choice
-  choice=$(pick "Opzione:" "1" \
-    "enable|Entra direttamente in pish al login (chsh -s /usr/local/bin/pish)" \
-    "disable|Ripristina la shell di default (bash)" \
-    "show|Mostra lo stato attuale")
+  local choice="${1:-}"
+  if [ -z "$choice" ]; then
+    choice=$(pick "Opzione:" "1" \
+      "enable|Entra direttamente in pish al login (chsh -s /usr/local/bin/pish)" \
+      "disable|Ripristina la shell di default (bash)" \
+      "show|Mostra lo stato attuale")
+  fi
 
   case "$choice" in
     enable)
@@ -300,7 +302,8 @@ wizard_login() {
       fi
       # chsh per l'utente corrente (o quello indicato)
       local user
-      user=$(ask "Utente" "${SUDO_USER:-root}")
+      user="${PISH_LOGIN_USER:-}"
+      [ -n "$user" ] || user=$(ask "Utente" "${SUDO_USER:-root}")
       if [ -n "$user" ] && id "$user" >/dev/null 2>&1; then
         chsh -s /usr/local/bin/pish "$user" && say "  ✓ shell di login di $user → pish"
       else
@@ -313,7 +316,8 @@ wizard_login() {
       ;;
     disable)
       local user
-      user=$(ask "Utente" "${SUDO_USER:-root}")
+      user="${PISH_LOGIN_USER:-}"
+      [ -n "$user" ] || user=$(ask "Utente" "${SUDO_USER:-root}")
       if [ -n "$user" ] && id "$user" >/dev/null 2>&1; then
         # torna alla shell di default del sistema (bash se presente)
         local def="/bin/bash"
@@ -325,7 +329,7 @@ wizard_login() {
       ;;
     show)
       local user
-      user="${SUDO_USER:-root}"
+      user="${PISH_LOGIN_USER:-${SUDO_USER:-root}}"
       local sh
       sh=$(getent passwd "$user" | cut -d: -f7)
       if [ "$sh" = "/usr/local/bin/pish" ]; then
@@ -361,6 +365,15 @@ wizard_base() {
 
 # ------------------------------ main ------------------------------------------
 case "${1:-}" in
+  --login)  # --login enable|disable|status [user]
+    laction="${2:-status}"; luser="${3:-${SUDO_USER:-root}}"
+    PISH_LOGIN_USER="$luser"
+    case "$laction" in
+      enable|disable) wizard_login "$laction" ;;
+      status) wizard_login show ;;
+      *) die "uso: pish login-on|login-off|login-status [utente]" ;;
+    esac
+    ;;
   --show|-s) show_config; exit 0 ;;
   --noninteractive|-n)
     # uso scripted: --provider X --api-key Y --model Z --base-url B

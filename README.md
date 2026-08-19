@@ -90,6 +90,7 @@ Se omesso, la sessione parte comunque ma va configurato il provider in seguito
 ```bash
 pish config                   # wizard interattivo: cambia provider/modello/impostazioni
 pish config --show            # mostra la configurazione attuale (key mascherate)
+pish login-on|off|status      # abilita/disabilita pish come shell di login
 systemctl restart pish        # riavvia la sessione
 journalctl -u pish -f         # log in tempo reale
 tmux attach -t pish           # attach alla sessione
@@ -127,15 +128,17 @@ pish config --noninteractive --provider openrouter --api-key sk-or-... --model a
 
 ### Pish come shell di login
 
-Con `pish config → login → enable`, al prossimo login dell'utente si entra
-**direttamente in PISH** (attach alla sessione) invece di bash:
+Al prossimo login dell'utente si entra **direttamente in PISH** (attach alla
+sessione) invece di bash:
 
 ```bash
-pish config          # menu → login → enable
-# poi: logout e ri-login → sei dentro pish
+pish login-on        # abilita: al login entri direttamente in pish
+pish login-off       # disabilita: torna a bash
+pish login-status    # mostra lo stato attuale
+# oppure via wizard: pish config → menu → login → enable/disable
 ```
 
-- Per uscire: `exit` o Ctrl+D (torna al login)
-- Per tornare a bash: `pish config → login → disable`
+- Per uscire da pish: `exit` o Ctrl+D (torna al login)
+- Utente diverso da root: `pish login-off filippo`
 - Nota: serve che l'utente abbia una sessione pish attiva o che `pish start`
   sia eseguibile al login (il comando attacha e avvia se serve)
