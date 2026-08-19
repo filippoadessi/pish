@@ -78,11 +78,22 @@ install_deps() {
     warn "⚠ distribuzione non riconosciuta — assumo node/npm/tmux già presenti"
   fi
 
-  # node minimo
+  # node minimo: pi richiede >= 20 (usa `import ... with { type: "json" }`)
   local ver
   ver=$(node --version 2>/dev/null | sed 's/v//;s/\..*//') || true
-  if [ -z "${ver:-}" ] || [ "$ver" -lt 18 ]; then
-    die "node >= 18 richiesto (trovato: $(node --version 2>/dev/null || echo nessuno)). Installalo via nodesource o nvm e riprova."
+  if [ -z "${ver:-}" ] || [ "$ver" -lt 20 ]; then
+    say "   node $(node --version 2>/dev/null || echo nessuno) troppo vecchio (serve >= 20) — installo node 22 LTS"
+    if have apt-get && have curl; then
+      curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+      apt-get install -y -qq nodejs
+    elif { have dnf || have yum; } && have curl; then
+      curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
+      { have dnf && dnf install -y nodejs; } || yum install -y nodejs
+    else
+      die "node >= 20 richiesto (trovato: $(node --version 2>/dev/null || echo nessuno)). Installa via Nodesource o nvm e riprova."
+    fi
+    ver=$(node --version 2>/dev/null | sed 's/v//;s/\..*//')
+    [ "$ver" -ge 20 ] || die "node ancora < 20 dopo l'install (trovato $(node --version))"
   fi
   say "   ✓ node $(node --version), npm $(npm --version), tmux $(tmux -V 2>/dev/null || echo '?')"
 }
