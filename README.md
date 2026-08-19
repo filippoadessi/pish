@@ -21,6 +21,7 @@ wizard `pish config`, estensione `/exit` `/quit`.
 Su un server Linux fresco, come root — **una riga, senza scaricare nulla prima**:
 
 ```bash
+# (se curl manca su un server minimale: apt-get update && apt-get install -y curl)
 # versione completa (engine locale + modello piccolo di default)
 curl -fsSL https://raw.githubusercontent.com/filippoadessi/pish/master/pish.app -o pish.app && sudo bash pish.app
 
