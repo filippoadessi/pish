@@ -41,25 +41,34 @@ bash pish.app --provider=ollama
 bash pish.app --provider=openai --model=gpt-4o-mini
 ```
 
-### Modello di default: MiniCPM-V 4.6
+### Modello di default
 
-Se usi il provider `ollama` locale, l'installer:
-1. **Installa il motore** (Ollama via script ufficiale, se non presente)
-2. **Scarica il modello** [`minicpm-v4.6`](https://ollama.com/library/minicpm-v4.6)
-   (1.6 GB, vision, supporta il tool calling necessario a pi per eseguire i comandi)
-3. **Pre-warm** il modello (primo caricamento in RAM) per evitare timeout al primo uso
+L'installer scarica un modello **piccolo** (`qwen2.5:1.5b`, ~1 GB) giusto per
+far partire PISH subito. Poi, con `pish config`, scegli il modello che preferisci
+(più capace, più veloce, ecc.) o un provider cloud.
 
 ### Engine LLM
 
 | Engine | Default | Note |
 |---|---|---|
-| `ollama` | ✅ | Installato automaticamente; CPU/GPU; già testato end-to-end |
+| `ollama` | ✅ | Installato automaticamente; CPU/GPU; modello piccolo incluso |
+| `none` | — | **Versione leggera cloud-only**: niente ollama, usi un provider cloud |
 | `vllm` | — | Solo GPU NVIDIA; richiede setup manuale (CUDA, ~10 GB) |
 | `llama.cpp` | — | CPU-only leggero; setup manuale |
 
-Scegli con `--engine=ollama|vllm|llama.cpp`. Per endpoint remoti
-(OpenAI-compatibili) l'engine locale non serve: usa `--provider=openai|custom`
-con `--base-url` e `--api-key`.
+Esempi:
+
+```bash
+# Installazione completa con engine locale
+bash pish.app
+
+# Versione leggera: niente ollama, pish lavora con un modello cloud
+bash pish.app --engine=none --provider=anthropic --api-key=sk-ant-... --model=claude-sonnet-4-6
+bash pish.app --engine=none --provider=openrouter --api-key=sk-or-... --model=anthropic/claude-sonnet-4
+```
+
+Con `--engine=none` ollama non viene installato; configuri il provider dopo
+con `pish config` (o lo installi in seguito: `ollama serve` + `pish config → provider → ollama`).
 
 Se omesso, la sessione parte comunque ma va configurato il provider in seguito
 (`pi auth` / variabili d'ambiente del servizio).
