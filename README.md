@@ -257,5 +257,22 @@ server senza che tu glielo chieda.
 Il modello salva da solo i fatti stabili che scopre (via tool `remember_fact`),
 e a ogni turno la memoria viene iniettata nel prompt: chiedi "qual è l'host del
 DB?" e risponde dalla memoria, senza eseguire comandi.
+
+**Policy di sicurezza e audit** (`~/.pi/pish/policy.json` + `audit.log`):
+
+```bash
+/policy                                   # mostra policy e ruoli
+/policy deny "rm -rf *"                   # blocca un pattern
+/policy allow "docker restart *"          # consente un pattern
+/policy ask "systemctl restart *"         # chiede conferma
+/policy remove <id>                       # rimuove una policy
+/role filippo operator                    # ruoli: admin | operator | readonly
+/audit [n]                                # ultime n voci di audit
+```
+
+- **Default sicuro**: comandi pericolosi (`rm -rf`, `mkfs`, `dd`, `reboot`,
+  `DROP TABLE`...) → chiedono conferma; il resto passa
+- **Ruolo `readonly`**: blocca scritture/edit e comandi di modifica
+- **Audit trail completo**: ogni comando registrato (chi, cosa, esito, policy)
 - Nota: serve che l'utente abbia una sessione pish attiva o che `pish start`
   sia eseguibile al login (il comando attacha e avvia se serve)
