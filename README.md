@@ -282,3 +282,37 @@ eseguiti dal modello viene riformattato:
 - `vmstat`, `iostat`, `sar` → **grafici a barre ASCII**
 - Nota: serve che l'utente abbia una sessione pish attiva o che `pish start`
   sia eseguibile al login (il comando attacha e avvia se serve)
+
+**Scripting di direttive** (`/script`, estensione `pish-script`): esegue file
+`.pish` in `~/.pi/pish/scripts/` con una direttiva per riga e rami condizionali:
+
+```bash
+# deploy.pish
+fai il build del frontend
+se ok: deploy su staging
+verifica che il sito risponda su :443
+se ok: notifica su Telegram
+```
+
+```bash
+/script new deploy            # crea un nuovo script (template)
+/script list                  # elenca gli script
+/script show deploy           # mostra il contenuto
+/script run deploy            # esegue (step by step, una direttiva per turno)
+/script resume                # riprende dall'ultimo checkpoint
+/script schedule deploy '0 6 * * *'   # esegue via cron ogni giorno alle 6
+/script unschedule deploy     # rimuove dalla schedulazione
+/script status                # schedulati + script in corso
+```
+
+- **Rami condizionali**: `se ok:` / `se errore:` fanno proseguire o saltare
+  in base all'esito della direttiva precedente
+- **Checkpoint**: lo stato (file + step + esito) è salvato a ogni passo in
+  `~/.pi/pish/script-state.json`; `/script resume` riprende da dove si è
+  fermato (anche dopo un riavvio)
+- **Cron**: le espressioni supportano `*`, `*/n`, `n-m`, liste e i 5 campi
+  standard (minuto, ora, giorno del mese, mese, giorno della settimana);
+  lo scheduler controlla ogni 30s
+- **Esecuzione**: ogni direttiva è inviata alla sessione pish come input
+  utente reale (via tmux send-keys), così il modello la esegue con tutto il
+  suo contesto; lo script avanza automaticamente al turno successivo
