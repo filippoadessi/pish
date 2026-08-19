@@ -238,5 +238,9 @@ istanziare worker pi in tmux e orchestrarli:
 
 Ogni worker è una sessione pi completa (mesh remote-pi, tau-mirror su porta
 propria) — la shell principale li orchestra via intercom/messaggi.
+
+**Prompt vivo**: a ogni turno PISH inietta lo stato del sistema (load, RAM,
+disco, docker, git branch, servizi falliti) — il modello sa sempre com'è il
+server senza che tu glielo chieda.
 - Nota: serve che l'utente abbia una sessione pish attiva o che `pish start`
   sia eseguibile al login (il comando attacha e avvia se serve)
