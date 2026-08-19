@@ -33,12 +33,20 @@ Il server deve avere accesso a un provider LLM per pi (vedi "Provider LLM").
 Pi richiede un provider configurato. Esempi:
 
 ```bash
-# Ollama locale
-bash pish.app --provider=ollama --model=qwen2.5:0.5b
+# Ollama locale (default: MiniCPM-V 4.6 — vision, tool calling, 1.6 GB,
+# scaricato automaticamente all'installazione)
+bash pish.app --provider=ollama
 
-# OpenAI-compatibile / API key
+# Endpoint OpenAI-compatibile / API key
 bash pish.app --provider=openai --model=gpt-4o-mini
 ```
+
+### Modello di default: MiniCPM-V 4.6
+
+Se usi il provider `ollama` locale, l'installer scarica automaticamente
+[`minicpm-v4.6`](https://ollama.com/library/minicpm-v4.6) (1.6 GB, vision,
+supporta il tool calling necessario a pi per eseguire i comandi). Richiede
+Ollama >= 0.28 (l'installer lo verifica e aggiorna se serve).
 
 Se omesso, la sessione parte comunque ma va configurato il provider in seguito
 (`pi auth` / variabili d'ambiente del servizio).
