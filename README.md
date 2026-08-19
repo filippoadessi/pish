@@ -18,14 +18,21 @@ wizard `pish config`, estensione `/exit` `/quit`.
 
 ## Installazione
 
-Su un server Linux fresco, come root:
+Su un server Linux fresco, come root — **una riga, senza scaricare nulla prima**:
 
 ```bash
 # versione completa (engine locale + modello piccolo di default)
-bash pish.app
+curl -fsSL https://raw.githubusercontent.com/filippoadessi/pish/master/pish.app -o pish.app && sudo bash pish.app
 
 # versione leggera cloud-only (niente Ollama)
-bash pish-lite.app --provider=anthropic --api-key=sk-ant-...
+curl -fsSL https://raw.githubusercontent.com/filippoadessi/pish/master/pish-lite.app -o pish-lite.app && sudo bash pish-lite.app --provider=anthropic --api-key=sk-ant-...
+```
+
+Oppure, se preferisci salvare prima:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/filippoadessi/pish/master/pish.app -o pish.app
+sudo bash pish.app
 ```
 
 Entrambe supportano l'interazione: senza flag il wizard chiede provider/modello
