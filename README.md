@@ -274,5 +274,11 @@ DB?" e risponde dalla memoria, senza eseguire comandi.
   `DROP TABLE`...) → chiedono conferma; il resto passa
 - **Ruolo `readonly`**: blocca scritture/edit e comandi di modifica
 - **Audit trail completo**: ogni comando registrato (chi, cosa, esito, policy)
+
+**Output ricco** (`/output on|off|auto`, default auto): l'output dei comandi
+eseguiti dal modello viene riformattato:
+- `ps`, `docker ps`, `systemctl`, `df`, `free`, `ls -l` → **tabelle allineate**
+- `git diff`, `diff -u` → **diff colorati** (verde/rosso/header)
+- `vmstat`, `iostat`, `sar` → **grafici a barre ASCII**
 - Nota: serve che l'utente abbia una sessione pish attiva o che `pish start`
   sia eseguibile al login (il comando attacha e avvia se serve)
