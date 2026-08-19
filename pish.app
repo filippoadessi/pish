@@ -14,6 +14,7 @@
 #        --model qwen2.5:0.5b --port 3810 --relay https://relay.adessi.it
 #
 # Opzioni:
+#   --engine <engine>      Engine LLM locale (ollama default | vllm | llama.cpp)
 #   --provider <id>        Provider LLM (ollama | openai | custom)
 #   --base-url <url>       Base URL API (OpenAI-compatibile)
 #   --api-key <key>        API key (per openai/custom)
@@ -40,6 +41,7 @@ PISH_PROVIDER="${PISH_PROVIDER:-}"
 PISH_MODEL="${PISH_MODEL:-}"
 PISH_BASE_URL="${PISH_BASE_URL:-}"
 PISH_API_KEY="${PISH_API_KEY:-}"
+PISH_ENGINE="${PISH_ENGINE:-ollama}"
 PISH_DIR="${PISH_DIR:-/opt/pish}"
 PI_AGENT_DIR="${PI_AGENT_DIR:-/root/.pi/agent}"
 PI_SESSIONS_DIR="${PI_SESSIONS_DIR:-/root/.pi}"
@@ -54,6 +56,7 @@ for arg in "$@"; do
     --model=*) PISH_MODEL="${arg#*=}" ;;
     --base-url=*) PISH_BASE_URL="${arg#*=}" ;;
     --api-key=*) PISH_API_KEY="${arg#*=}" ;;
+    --engine=*) PISH_ENGINE="${arg#*=}" ;;
     --no-systemd) PISH_SYSTEMD=0 ;;
     --dry-run) PISH_DRYRUN=1 ;;
     --yes|-y) PISH_YES=1 ;;
@@ -93,17 +96,17 @@ ask() { # ask "domanda" "default" — prompt su stderr, risposta su stdout
 
 # ============================== 1. DIPENDENZE ==============================
 install_deps() {
-  say "→ [1/7] Dipendenze di sistema (node ≥ 20, npm, tmux, git)"
+  say "→ [1/8] Dipendenze di sistema (node ≥ 20, npm, tmux, git)"
   if [ "$PISH_DRYRUN" = 1 ]; then echo "   [dry-run] apt-get/dnf install node npm tmux git"; return 0; fi
 
   if have apt-get; then
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
-    apt-get install -y -qq nodejs npm tmux git curl ca-certificates
+    apt-get install -y -qq nodejs npm tmux git curl ca-certificates zstd
   elif have dnf; then
-    dnf install -y nodejs npm tmux git curl
+    dnf install -y nodejs npm tmux git curl zstd
   elif have yum; then
-    yum install -y nodejs npm tmux git curl
+    yum install -y nodejs npm tmux git curl zstd
   else
     warn "⚠ distribuzione non riconosciuta — assumo node/npm/tmux già presenti"
   fi
@@ -130,7 +133,7 @@ install_deps() {
 
 # ============================== 2. PI + ESTENSIONI =========================
 install_pi() {
-  say "→ [2/7] pi (coding agent) + estensioni tau-mirror / remote-pi"
+  say "→ [2/8] pi (coding agent) + estensioni tau-mirror / remote-pi"
   if ! have pi; then
     run npm install -g @earendil-works/pi-coding-agent
   else
@@ -142,12 +145,48 @@ install_pi() {
   say "   ✓ estensioni: tau-mirror (web UI), remote-pi (mesh mobile)"
 }
 
-# ============================== 3. PROVIDER / MODELLO ======================
+# ============================== 3. ENGINE LLM ==============================
+# Installa il motore di inferenza locale (default: ollama). vLLM/llama.cpp
+# sono documentati ma richiedono GPU o setup manuale.
+install_engine() {
+  say "→ [3/8] Engine LLM ($PISH_ENGINE)"
+  case "$PISH_ENGINE" in
+    ollama)
+      if have ollama; then
+        say "   ✓ ollama già presente ($(ollama --version 2>/dev/null | head -1 || echo '?'))"
+      else
+        say "   Installo ollama (script ufficiale)..."
+        if [ "$PISH_DRYRUN" = 1 ]; then
+          echo "   [dry-run] curl -fsSL https://ollama.com/install.sh | sh"
+        else
+          curl -fsSL https://ollama.com/install.sh | sh || die "installazione ollama fallita"
+        fi
+        if [ "$PISH_DRYRUN" != 1 ]; then
+          have ollama || die "ollama non trovato dopo l'install"
+        fi
+        say "   ✓ ollama $(ollama --version 2>/dev/null | head -1 || echo 'installato')"
+      fi
+      # assicura che il servizio sia attivo
+      if [ "$PISH_DRYRUN" != 1 ]; then
+        systemctl enable ollama 2>/dev/null || true
+        systemctl start ollama 2>/dev/null || true
+        sleep 2
+      fi
+      ;;
+    vllm|llama.cpp)
+      warn "⚠ engine '$PISH_ENGINE' non installato automaticamente: richiede GPU (vLLM) o setup manuale."
+      warn "   Usa ollama (default) o configura l'endpoint OpenAI-compatibile con --base-url."
+      ;;
+    *) die "engine sconosciuto: $PISH_ENGINE (ollama | vllm | llama.cpp)" ;;
+  esac
+}
+
+# ============================== 4. PROVIDER / MODELLO ======================
 # Chiede all'utente provider+modello e scrive models.json + settings.json.
 # Formato models.json (pi): { providers: { <id>: { api, apiKey, baseUrl, models: [{id,...}] } } }
 # Posizione: $PI_AGENT_DIR/models.json
 write_provider_config() {
-  say "→ [3/7] Provider e modello LLM"
+  say "→ [4/8] Provider e modello LLM"
   mkdir -p "$PI_AGENT_DIR"
 
   local prov="$PISH_PROVIDER"
@@ -268,7 +307,7 @@ PYEOF
 
 # ============================== 4. LAUNCHER SESSIONE =======================
 write_pish_sh() {
-  say "→ [4/7] Launcher sessione ($PISH_DIR/pish.sh)"
+  say "→ [5/8] Launcher sessione ($PISH_DIR/pish.sh)"
   run mkdir -p "$PISH_DIR"
   run tee "$PISH_DIR/pish.sh" > /dev/null <<PISH_EOF
 #!/usr/bin/env bash
@@ -329,7 +368,7 @@ PISH_EOF
 # Installa /usr/local/bin/pish: la shell è usabile come tutte le altre
 # (pish start/stop/status/attach/web/pair + chsh -s /usr/local/bin/pish).
 write_pish_cmd() {
-  say "→ [5/7] Comando shell /usr/local/bin/pish"
+  say "→ [6/8] Comando shell /usr/local/bin/pish"
   run tee /usr/local/bin/pish > /dev/null <<CMD_EOF
 #!/usr/bin/env bash
 # pish — shell intelligente (Pi Intelligent SHell)
@@ -371,7 +410,7 @@ CMD_EOF
 # ============================== 6. SYSTEMD =================================
 write_service() {
   [ "$PISH_SYSTEMD" = 1 ] || { warn "⏭ --no-systemd: avvio manuale con 'pish start'"; return 0; }
-  say "→ [6/7] Servizio systemd pish.service"
+  say "→ [7/8] Servizio systemd pish.service"
   local env_provider="" env_model="" env_extra=""
   [ -n "$PISH_PROVIDER" ] && env_provider="Environment=PISH_PROVIDER=$PISH_PROVIDER"
   [ -n "$PISH_MODEL" ] && env_model="Environment=PISH_MODEL=$PISH_MODEL"
@@ -403,7 +442,7 @@ SVC_EOF
 
 # ============================== 7. VERIFICA + ISTRUZIONI ===================
 verify() {
-  say "→ [7/7] Verifica"
+  say "→ [8/8] Verifica"
   [ "$PISH_DRYRUN" = 1 ] && { echo "   [dry-run] skip"; return 0; }
   sleep 6
   if systemctl is-active --quiet pish 2>/dev/null || tmux has-session -t "$PISH_NAME" 2>/dev/null; then
@@ -441,6 +480,7 @@ main() {
   echo
   install_deps
   install_pi
+  install_engine
   write_provider_config
   write_pish_sh
   write_pish_cmd

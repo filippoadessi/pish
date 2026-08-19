@@ -43,10 +43,23 @@ bash pish.app --provider=openai --model=gpt-4o-mini
 
 ### Modello di default: MiniCPM-V 4.6
 
-Se usi il provider `ollama` locale, l'installer scarica automaticamente
-[`minicpm-v4.6`](https://ollama.com/library/minicpm-v4.6) (1.6 GB, vision,
-supporta il tool calling necessario a pi per eseguire i comandi). Richiede
-Ollama >= 0.28 (l'installer lo verifica e aggiorna se serve).
+Se usi il provider `ollama` locale, l'installer:
+1. **Installa il motore** (Ollama via script ufficiale, se non presente)
+2. **Scarica il modello** [`minicpm-v4.6`](https://ollama.com/library/minicpm-v4.6)
+   (1.6 GB, vision, supporta il tool calling necessario a pi per eseguire i comandi)
+3. **Pre-warm** il modello (primo caricamento in RAM) per evitare timeout al primo uso
+
+### Engine LLM
+
+| Engine | Default | Note |
+|---|---|---|
+| `ollama` | ✅ | Installato automaticamente; CPU/GPU; già testato end-to-end |
+| `vllm` | — | Solo GPU NVIDIA; richiede setup manuale (CUDA, ~10 GB) |
+| `llama.cpp` | — | CPU-only leggero; setup manuale |
+
+Scegli con `--engine=ollama|vllm|llama.cpp`. Per endpoint remoti
+(OpenAI-compatibili) l'engine locale non serve: usa `--provider=openai|custom`
+con `--base-url` e `--api-key`.
 
 Se omesso, la sessione parte comunque ma va configurato il provider in seguito
 (`pi auth` / variabili d'ambiente del servizio).
