@@ -340,3 +340,24 @@ Ricette incluse:
 Le ricette usano la stessa sintassi dello scripting (`se ok:` / `se errore:`),
 quindi supportano checkpoint, ripresa e cron; sono anche nel repo in
 `recipes/*.pish` come sorgente condivisibile.
+
+**Autocompletamento intelligente** (`/complete`, estensione `pish-complete`):
+in TUI premi **TAB** mentre scrivi e PISH suggerisce **direttive complete con
+nomi reali**:
+
+```
+riavvia il <TAB>        → riavvia il servizio nginx · riavvia il container postgres …
+mostra i log del <TAB>  → mostra i log del container <nome> · del servizio <nome>
+esegui la <TAB>         → esegui la ricetta backup-db · update-system · ssl-check …
+/script run <TAB>       → nomi degli script in ~/.pi/pish/scripts/
+/recipe run <TAB>       → nomi delle ricette in ~/.pi/pish/recipes/
+```
+
+- **Storico**: le direttive che hai già dato ("l'ultima volta hai fatto…")
+  vengono suggerite per prime quando tornano pertinenti
+- **Nomi reali**: container docker, servizi systemd attivi/falliti, ricette,
+  script, host SSH — espansi nei template delle direttive
+- **Fallback trasparente**: se non c'è nulla da suggerire, TAB si comporta
+  esattamente come prima (file, comandi slash, argomenti nativi)
+- **Su tau-mirror / remote-pi** (nessuna TUI): `/complete [testo]` mostra gli
+  stessi suggerimenti; senza argomenti è una cheat-sheet di cosa chiedere
