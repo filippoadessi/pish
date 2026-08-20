@@ -20,7 +20,7 @@
 //   - il comando critico viene BLOCCATO e registrato in ~/.pi/pish/pending-approvals.json
 //   - un secondo operatore (altra sessione pish / tau-mirror / remote-pi) esegue
 //     /approve <id> — NON può approvare dalla sessione che ha richiesto
-//   - le richieste scadono (default 15 min, PISH_APPROVAL_TTL_MS); il comando
+//   - le richieste scadono (default 24h, PISH_APPROVAL_TTL_MS); il comando
 //     viene rieseguito dopo l'approvazione e la richiesta si consuma
 //
 // Comandi: /policy · /policy allow|deny|ask <pattern> · /policy critical <pattern>
