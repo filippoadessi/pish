@@ -265,13 +265,28 @@ DB?" e risponde dalla memoria, senza eseguire comandi.
 /policy deny "rm -rf *"                   # blocca un pattern
 /policy allow "docker restart *"          # consente un pattern
 /policy ask "systemctl restart *"         # chiede conferma
+/policy critical "flyctl destroy *"       # azione critica: serve doppia approvazione
+/policy critical remove "flyctl destroy *"
 /policy remove <id>                       # rimuove una policy
 /role filippo operator                    # ruoli: admin | operator | readonly
 /audit [n]                                # ultime n voci di audit
 ```
 
-- **Default sicuro**: comandi pericolosi (`rm -rf`, `mkfs`, `dd`, `reboot`,
-  `DROP TABLE`...) → chiedono conferma; il resto passa
+- **Default sicuro**: comandi pericolosi (`rm -rf`, `mkfs`, `dd`, `DROP
+  TABLE`...) → chiedono conferma; il resto passa
+- **Approvazione a due livelli**: le azioni **critiche** (`reboot`, `mkfs`,
+  `DROP DATABASE`, `docker system prune`, `git push --force`, …) vengono
+  BLOCCATE e messe in coda; un **secondo operatore** (altra sessione
+  pish/tau-mirror/remote-pi, o altro utente sulla stessa macchina) le approva:
+
+```bash
+/approvals                                # richieste in attesa/risolte
+/approve <id> [nota]                      # da UNA ALTRA sessione/utente: sblocca
+/deny <id>                               # nega la richiesta
+```
+
+  La richiesta scade (default 24h, `PISH_APPROVAL_TTL_MS`) e si consuma dopo
+  l'esecuzione; tutto è tracciato in audit (`approval-requested`, …)
 - **Ruolo `readonly`**: blocca scritture/edit e comandi di modifica
 - **Audit trail completo**: ogni comando registrato (chi, cosa, esito, policy)
 
