@@ -53,7 +53,7 @@ const DEFAULT_DANGEROUS = [
 // richiedono un secondo operatore (approvazione a due livelli)
 const DEFAULT_CRITICAL = [
   "reboot", "shutdown", "halt", "poweroff", "systemctl reboot", "systemctl poweroff",
-  "mkfs", "fdisk", "parted", "dd if=.*of=/dev/",
+  "mkfs", "fdisk", "parted", "dd if=/dev/",
   "rm -rf /", "rm -fr /", "rm -rf /*",
   "DROP DATABASE", "DROP TABLE", "TRUNCATE",
   "docker system prune", "docker compose down", "docker stack", "docker volume rm",
@@ -118,9 +118,21 @@ function matchRule(p: Policy, command: string, role: string): Rule | undefined {
   return undefined;
 }
 
+function escapeGlob(s: string): string {
+  return s.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+}
+
+// pattern glob → regex parziale (case-insensitive): "*" = qualsiasi sequenza.
+// Es. "flyctl destroy *" matcha "flyctl destroy myapp".
+function patternToRegex(pattern: string): RegExp {
+  const p = pattern.toLowerCase();
+  const re = p.split("*").map(escapeGlob).join(".*");
+  return new RegExp(re);
+}
+
 function matchesAny(command: string, patterns: string[]): boolean {
   const c = command.toLowerCase();
-  return patterns.some(pt => c.includes(pt.toLowerCase()));
+  return patterns.some(pt => patternToRegex(pt).test(c));
 }
 
 function isCritical(command: string, p: Policy): boolean {
@@ -337,7 +349,7 @@ export default function (pi: any) {
           const target = parts.slice(2).join(" ").replace(/^["']|["']$/g, "");
           if (!target) { ctx.ui.notify("Uso: /policy critical remove <pattern>", "warn"); return; }
           p.critical = (p.critical || []).filter(c => c.toLowerCase() !== target.toLowerCase());
-          save(p);
+          savePolicy(p);
           audit({ user: currentUser(), action: "policy-critical-remove", pattern: target });
           ctx.ui.notify(`✓ Rimosso dai critici: "${target}"`, "info");
           return;
@@ -381,7 +393,7 @@ export default function (pi: any) {
       const id = parts[0];
       if (!id) { ctx.ui.notify("Uso: /approve <id> [nota] (vedi /approvals)", "warn"); return; }
       const note = parts.slice(1).join(" ");
-      let pending = cleanupExpired(loadPending());
+      const pending = cleanupExpired(loadPending());
       const r = markRequest(pending, id, "approved", currentUser(), sessionId(), note || undefined);
       if (!r.ok) { ctx.ui.notify(`✗ ${r.error}`, "warn"); return; }
       savePending(r.list);
@@ -396,7 +408,7 @@ export default function (pi: any) {
     handler: async (args: string, ctx: any) => {
       const id = (args || "").trim();
       if (!id) { ctx.ui.notify("Uso: /deny <id> (vedi /approvals)", "warn"); return; }
-      let pending = cleanupExpired(loadPending());
+      const pending = cleanupExpired(loadPending());
       const r = markRequest(pending, id, "denied", currentUser(), sessionId());
       if (!r.ok) { ctx.ui.notify(`✗ ${r.error}`, "warn"); return; }
       savePending(r.list);
